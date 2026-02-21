@@ -110,29 +110,32 @@ class TestViralityScorer:
         assert signal.channel == "roshtein"
         assert signal.metadata == {"game": "slots"}
 
-    def test_cooldown_prevents_duplicate_triggers(self, low_threshold_scorer):
-        # First trigger should work
+    def test_cooldown_prevents_duplicate_triggers(self):
+        # Use very low threshold so a single strong signal triggers
+        scorer = ViralityScorer(threshold=0.1, cooldown_seconds=5.0)
+
+        # First trigger - BIG_WIN value=1.0 * weight=0.25 = 0.25 > 0.1
         signal1 = ViralitySignal(
             signal_type=SignalType.BIG_WIN,
             value=1.0,
-            weight=0.5,
+            weight=0.25,
             timestamp=datetime.now(),
             source="stake",
             channel="testchannel",
         )
-        result1 = low_threshold_scorer.add_signal(signal1)
+        result1 = scorer.add_signal(signal1)
         assert result1 is not None
 
         # Second trigger should be blocked by cooldown
         signal2 = ViralitySignal(
             signal_type=SignalType.CHAT_VELOCITY,
             value=1.0,
-            weight=0.5,
+            weight=0.3,
             timestamp=datetime.now(),
             source="kick",
             channel="testchannel",
         )
-        result2 = low_threshold_scorer.add_signal(signal2)
+        result2 = scorer.add_signal(signal2)
         assert result2 is None  # Blocked by cooldown
 
     def test_get_current_score(self, scorer):
