@@ -1,37 +1,55 @@
-# Stake Downloader - Viral Content Automation
+<p align="center">
+  <h1 align="center">Stake Downloader</h1>
+  <p align="center">
+    <strong>Real-Time Viral Moment Detection & Capture</strong> &mdash; from Kick.com & Stake.com live streams.
+  </p>
+</p>
 
-[![CI](https://github.com/brolyroly007/Stake_downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/brolyroly007/Stake_downloader/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+<p align="center">
+  <a href="https://github.com/brolyroly007/Stake_downloader/actions/workflows/ci.yml"><img src="https://github.com/brolyroly007/Stake_downloader/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/brolyroly007/Stake_downloader/actions/workflows/docker.yml"><img src="https://github.com/brolyroly007/Stake_downloader/actions/workflows/docker.yml/badge.svg" alt="Docker Build"></a>
+  <img src="https://img.shields.io/badge/python-3.10+-blue?logo=python&logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License MIT"></a>
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"></a>
+</p>
+
+---
 
 Automated system for detecting, capturing, and processing viral moments from live streams on **Kick.com** and **Stake.com** gambling platforms. Captures clips in real-time, processes them for social media (vertical reframe, auto-captions), and publishes to TikTok, YouTube Shorts, and Instagram Reels.
 
----
+### How it works
+
+<p align="center">
+  <img src="docs/images/pipeline-flow.png" alt="Automated Viral Detection Pipeline" width="100%">
+</p>
 
 ## Screenshots
 
 <details>
-<summary>Click to expand screenshots</summary>
-
-### Web Dashboard
-> The dashboard provides real-time monitoring with WebSocket updates, chat velocity graphs, and a clip library.
-
-![Dashboard](docs/screenshots/dashboard.png)
-
-### Event Feed
-> Live event feed showing detected spikes and viral moments across all monitored channels.
-
-![Events](docs/screenshots/events.png)
-
-### Clip Library
-> Browse, play, and publish captured clips directly from the web interface.
-
-![Clips](docs/screenshots/clips.png)
-
+<summary><strong>Web Dashboard</strong> — Real-time monitoring with WebSocket updates</summary>
+<br>
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="100%">
+</p>
 </details>
 
----
+<details>
+<summary><strong>Event Feed</strong> — Live spike detection across channels</summary>
+<br>
+<p align="center">
+  <img src="docs/screenshots/events.png" alt="Events" width="100%">
+</p>
+</details>
+
+<details>
+<summary><strong>Clip Library</strong> — Browse, play, and publish clips</summary>
+<br>
+<p align="center">
+  <img src="docs/screenshots/clips.png" alt="Clips" width="100%">
+</p>
+</details>
 
 ## Features
 

@@ -1,22 +1,22 @@
 # ============================================
-# PROYECTO STAKE - VIRAL CONTENT AUTOMATION
+# STAKE DOWNLOADER - VIRAL CONTENT AUTOMATION
 # ============================================
 
 # Core
-pydantic>=2.0.0
-pydantic-settings>=2.0.0
-loguru>=0.7.0
-python-dotenv>=1.0.0
+pydantic>=2.0.0,<3.0.0
+pydantic-settings>=2.0.0,<3.0.0
+loguru>=0.7.0,<1.0.0
+python-dotenv>=1.0.0,<2.0.0
 
 # Async HTTP & WebSockets
-httpx>=0.25.0
-websockets>=12.0
-aiohttp>=3.9.0
-fastapi>=0.100.0
-uvicorn>=0.20.0
+httpx>=0.25.0,<1.0.0
+websockets>=12.0,<14.0
+aiohttp>=3.9.0,<4.0.0
+fastapi>=0.100.0,<1.0.0
+uvicorn>=0.20.0,<1.0.0
 
 # Cloudflare Bypass
-curl-cffi>=0.5.0
+curl-cffi>=0.5.0,<1.0.0
 
 # Kick/Twitch API
 KickApi>=0.1.0
@@ -25,41 +25,30 @@ KickApi>=0.1.0
 yt-dlp>=2024.1.0
 
 # Video Processing
-moviepy>=1.0.3
-opencv-python>=4.8.0
-ffmpeg-python>=0.2.0
-Pillow>=10.0.0
+moviepy>=1.0.3,<3.0.0
+opencv-python>=4.8.0,<5.0.0
+ffmpeg-python>=0.2.0,<1.0.0
+Pillow>=10.0.0,<11.0.0
 
 # Audio Processing & Transcription
 openai-whisper>=20231117
-# Alternativa cloud: assemblyai>=0.20.0
 
-# Browser Automation (para replays de Stake)
+# Browser Automation
 playwright>=1.40.0
 
+# AI Analysis
+google-generativeai>=0.3.0
+
 # Data Processing
-numpy>=1.24.0
-pandas>=2.0.0
+numpy>=1.24.0,<2.0.0
+pandas>=2.0.0,<3.0.0
 
 # Utilities
-tqdm>=4.66.0
-rich>=13.0.0
+tqdm>=4.66.0,<5.0.0
+rich>=13.0.0,<14.0.0
 
-# Testing
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-
-# Linting & Formatting (desarrollo)
-black>=23.0.0
-ruff>=0.1.0
-mypy>=1.7.0
-
-# Optional: Proxy Management
-# python-rotating-proxies>=0.1.0
-
-# Optional: Social Media Upload
-# TikTokApi>=6.0.0
-google-api-python-client>=2.100.0
-google-auth-oauthlib>=1.0.0
-google-auth>=2.0.0
-instagrapi>=1.17.0
+# Social Media Upload
+google-api-python-client>=2.100.0,<3.0.0
+google-auth-oauthlib>=1.0.0,<2.0.0
+google-auth>=2.0.0,<3.0.0
+instagrapi>=1.17.0,<3.0.0

@@ -21,6 +21,11 @@ COPY . .
 RUN mkdir -p clips/raw clips/square clips/captioned clips/final \
     logs output temp
 
+# Create non-root user for security
+RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 
 # Health check
