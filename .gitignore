@@ -1,0 +1,86 @@
+# ============================================
+# STAKE VIRAL CONTENT AUTOMATION - .gitignore
+# ============================================
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+tiktok_session.json
+client_secrets.json
+token.json
+*.pem
+*.key
+
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+*.whl
+dist/
+build/
+*.manifest
+
+# PyInstaller
+*.spec
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+.project
+.settings/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime Data
+logs/
+*.log
+monitored_channels.json
+
+# Media Files (generated at runtime)
+clips/
+clipsraw/
+test_clips/
+test_downloads/
+temp/
+output/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.wav
+*.mp3
+*.ass
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Memory Bank (development context)
+.memory_bank/
+
+# Misc
+nul
+*.tmp
+*.bak
+~*
+*.db
+*.sqlite3

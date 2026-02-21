@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viral Clip Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #09090b;
+            --bg-card: #18181b;
+            --accent: #00ff9d;
+            --accent-glow: rgba(0, 255, 157, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .status-dot {
+            box-shadow: 0 0 8px currentColor;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 3px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 15px var(--accent-glow);
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+    
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8 max-w-7xl mx-auto">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Viral Monitor <span class="text-emerald-500">Pro</span></h1>
+                <p class="text-xs text-zinc-400">Multi-Stream Intelligence System</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div id="statusBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-sm">
+                <div class="w-2 h-2 rounded-full bg-zinc-500 status-dot"></div>
+                <span class="text-zinc-400 font-medium">System Offline</span>
+            </div>
+            <button onclick="toggleSettings()" class="p-2 rounded-lg hover:bg-zinc-800 transition-colors">
+                <svg class="w-5 h-5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
+        
+        <!-- Left Column: Controls & Stats -->
+        <div class="col-span-12 lg:col-span-3 space-y-6">
+            <!-- Control Panel -->
+            <div class="glass-panel p-5">
+                <h3 class="text-sm font-medium text-zinc-400 uppercase tracking-wider mb-4">Control Center</h3>
+                <div class="space-y-3">
+                    <button id="startBtn" onclick="startMonitor()" class="w-full btn-primary py-3 rounded-xl flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Start Monitoring
+                    </button>
+                    <button id="stopBtn" onclick="stopMonitor()" class="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 py-3 rounded-xl font-medium hidden transition-colors border border-red-500/20">
+                        Stop System
+                    </button>
+                </div>
+
+                <!-- Captura Manual -->
+                <div class="mt-4 pt-4 border-t border-zinc-700">
+                    <h4 class="text-xs text-zinc-400 uppercase mb-2">Captura Manual</h4>
+                    <div class="flex gap-2">
+                        <input type="text" id="captureChannel" placeholder="canal" class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none">
+                        <select id="captureDuration" class="bg-zinc-900 border border-zinc-700 rounded-lg px-2 py-2 text-sm focus:border-emerald-500 focus:outline-none">
+                            <option value="15">15s</option>
+                            <option value="30" selected>30s</option>
+                            <option value="60">60s</option>
+                        </select>
+                    </div>
+                    <button onclick="manualCapture()" id="captureBtn" class="w-full mt-2 bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 py-2 rounded-lg text-sm font-medium transition-colors border border-purple-500/30">
+                        Capturar Clip
+                    </button>
+                </div>
+            </div>
+
+            <!-- MIS STREAMERS (favoritos - siempre visibles) -->
+            <div class="glass-panel p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-medium text-zinc-400 uppercase tracking-wider">⭐ MIS STREAMERS</h3>
+                    <button onclick="loadMyStreamers()" class="text-xs text-emerald-500 hover:text-emerald-400 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Actualizar
+                    </button>
+                </div>
+                <p class="text-xs text-zinc-500 mb-3">Tus streamers favoritos (click para monitorear)</p>
+
+                <div id="myStreamersList" class="space-y-2 max-h-[250px] overflow-y-auto custom-scrollbar">
+                    <div class="text-center text-zinc-600 py-4 text-xs">Cargando...</div>
+                </div>
+
+                <!-- Seleccionados -->
+                <div class="mt-4 pt-3 border-t border-zinc-700">
+                    <div class="text-xs text-zinc-400 mb-2">Monitoreando: <span id="selectedCount" class="text-emerald-500">0</span></div>
+                    <div id="selectedStreamers" class="flex flex-wrap gap-1 min-h-[24px]">
+                        <!-- Selected streamers appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Streamers EN VIVO (todos) -->
+            <div class="glass-panel p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-medium text-zinc-400 uppercase tracking-wider">🔴 OTROS EN VIVO</h3>
+                    <button onclick="loadLiveStreamers()" class="text-xs text-emerald-500 hover:text-emerald-400 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Actualizar
+                    </button>
+                </div>
+                <p class="text-xs text-zinc-500 mb-3">Streamers populares en vivo ahora</p>
+
+                <div id="liveStreamersList" class="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                    <div class="text-center text-zinc-600 py-4 text-xs">Cargando streamers en vivo...</div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-panel p-4">
+                    <div class="text-zinc-400 text-xs uppercase mb-1">Spikes</div>
+                    <div id="statSpikes" class="text-2xl font-bold text-emerald-400">0</div>
+                </div>
+                <div class="glass-panel p-4">
+                    <div class="text-zinc-400 text-xs uppercase mb-1">Clips</div>
+                    <div id="statClips" class="text-2xl font-bold text-white">0</div>
+                </div>
+                <div class="glass-panel p-4 col-span-2">
+                    <div class="text-zinc-400 text-xs uppercase mb-1">Processed Msgs</div>
+                    <div id="statMessages" class="text-2xl font-bold text-zinc-200 font-mono">0</div>
+                </div>
+            </div>
+
+            <!-- Active Channels List -->
+            <div class="glass-panel p-0 overflow-hidden flex flex-col h-[400px]">
+                <div class="p-4 border-b border-white/5 flex justify-between items-center">
+                    <h3 class="text-sm font-medium text-zinc-400">Active Channels</h3>
+                    <span id="channelCount" class="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400">0</span>
+                </div>
+                <div id="channelsList" class="overflow-y-auto custom-scrollbar flex-1 p-2 space-y-1">
+                    <!-- Channels injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Column: Live Feed & Chart -->
+        <div class="col-span-12 lg:col-span-6 space-y-6">
+            <!-- Chart de Actividad por Canal -->
+            <div class="glass-panel p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-medium text-zinc-400 uppercase tracking-wider">📊 Actividad de Chat</h3>
+                    <span id="totalVelocity" class="text-xs text-emerald-400">0 msg/s total</span>
+                </div>
+                <div id="channelBars" class="space-y-3">
+                    <div class="text-center text-zinc-600 py-8 text-sm">
+                        Inicia el monitoreo para ver actividad
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canales Monitoreando -->
+            <div class="glass-panel p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-medium text-zinc-400 uppercase tracking-wider">🎯 Monitoreando</h3>
+                    <span id="monitoringCount" class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded">0</span>
+                </div>
+                <div id="monitoringList" class="flex flex-wrap gap-2">
+                    <span class="text-zinc-600 text-sm">Ningún canal seleccionado</span>
+                </div>
+            </div>
+
+            <!-- AI Stream Summaries -->
+            <div class="glass-panel p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-medium text-zinc-400 uppercase tracking-wider">🤖 AI Stream Analysis</h3>
+                    <button onclick="loadAISummaries()" class="text-xs text-emerald-500 hover:text-emerald-400 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Refresh
+                    </button>
+                </div>
+                <div id="aiSummariesList" class="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+                    <div class="text-center text-zinc-600 py-4 text-sm">
+                        Inicia el monitoreo para ver análisis AI
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Events -->
+            <div class="glass-panel p-0 overflow-hidden flex flex-col h-[400px]">
+                <div class="p-4 border-b border-white/5">
+                    <h3 class="text-sm font-medium text-zinc-400">Live Events Feed</h3>
+                </div>
+                <div id="eventsList" class="overflow-y-auto custom-scrollbar flex-1 p-4 space-y-3">
+                    <div class="text-center text-zinc-600 py-10">Waiting for events...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Clips & Logs -->
+        <div class="col-span-12 lg:col-span-3 space-y-6">
+            <!-- Recent Clips -->
+            <div class="glass-panel p-0 overflow-hidden flex flex-col h-[400px]">
+                <div class="p-4 border-b border-white/5 flex justify-between items-center">
+                    <h3 class="text-sm font-medium text-zinc-400">Ready Clips</h3>
+                    <button onclick="fetchClips()" class="text-xs text-emerald-500 hover:text-emerald-400">Refresh</button>
+                </div>
+                <div id="clipsList" class="overflow-y-auto custom-scrollbar flex-1 p-2 space-y-2">
+                    <!-- Clips injected here -->
+                </div>
+            </div>
+
+            <!-- System Logs -->
+            <div class="glass-panel p-0 overflow-hidden flex flex-col h-[400px]">
+                <div class="p-4 border-b border-white/5 bg-black/20">
+                    <h3 class="text-sm font-medium text-zinc-400 font-mono">System Logs</h3>
+                </div>
+                <div id="logsConsole" class="overflow-y-auto custom-scrollbar flex-1 p-3 space-y-1 font-mono text-xs text-zinc-500 bg-black/20">
+                    <!-- Logs injected here -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="glass-panel w-full max-w-md p-6 m-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Configuration</h2>
+                <button onclick="toggleSettings()" class="text-zinc-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Add Channel</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="newChannelInput" class="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2 text-sm focus:border-emerald-500 focus:outline-none" placeholder="channel_slug">
+                        <button onclick="addChannel()" class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">Add</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm text-zinc-400 mb-2">Monitored Channels</label>
+                    <div id="configChannelsList" class="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 bg-zinc-900/50 rounded-lg">
+                        <!-- Config channels -->
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-white/10">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-zinc-300">Auto-Upload to TikTok</span>
+                        <div class="w-10 h-5 bg-emerald-500/20 rounded-full relative">
+                            <div class="w-3 h-3 bg-emerald-500 rounded-full absolute top-1 right-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // STATE & WEBSOCKET
+        // ==========================================
+        let ws = null;
+        let chart = null;
+        // channel -> array of data points
+        let channelData = {};
+        const MAX_POINTS = 60; // 60 seconds window
+
+        // Selected streamers
+        let selectedStreamers = new Set();
+        let liveStreamersData = [];
+
+        // ==========================================
+        // MIS STREAMERS (favoritos)
+        // ==========================================
+        async function loadMyStreamers() {
+            const container = document.getElementById('myStreamersList');
+            container.innerHTML = '<div class="text-center text-zinc-500 py-4 text-xs">🔄 Verificando streamers...</div>';
+
+            try {
+                const res = await fetch('/api/my-streamers');
+                const data = await res.json();
+
+                if (data.streamers.length === 0) {
+                    container.innerHTML = '<div class="text-center text-zinc-600 py-4 text-xs">No hay streamers configurados</div>';
+                    return;
+                }
+
+                container.innerHTML = data.streamers.map(s => `
+                    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800/50 cursor-pointer transition-all group ${selectedStreamers.has(s.slug) ? 'bg-emerald-500/10 border border-emerald-500/30' : ''} ${s.error === 'not_found' ? 'opacity-40' : ''}"
+                         onclick="toggleLiveStreamer('${s.slug}')" data-channel="${s.slug}">
+                        <div class="relative flex-shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden flex items-center justify-center">
+                                ${s.thumbnail ? `<img src="${s.thumbnail}" class="w-full h-full object-cover" onerror="this.style.display='none'">` : `<span class="text-zinc-600 text-lg">${s.username.charAt(0).toUpperCase()}</span>`}
+                            </div>
+                            ${s.is_live ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>' : ''}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium ${s.is_live ? 'text-white' : 'text-zinc-400'} truncate">${s.username}</span>
+                                ${selectedStreamers.has(s.slug) ? '<span class="text-emerald-500 text-xs">✓</span>' : ''}
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-zinc-500">
+                                ${s.is_live
+                                    ? `<span class="text-red-400 font-medium">🔴 ${formatViewers(s.viewers)}</span><span class="truncate">${s.category || ''}</span>`
+                                    : s.error === 'not_found'
+                                        ? '<span class="text-zinc-600">⚠️ No encontrado</span>'
+                                        : '<span class="text-zinc-600">● Offline</span>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Actualizar header con conteo
+                const header = document.querySelector('[onclick="loadMyStreamers()"]').parentElement.querySelector('h3');
+                header.innerHTML = `⭐ MIS STREAMERS <span class="text-emerald-400">(${data.live_count} live)</span>`;
+
+            } catch(e) {
+                console.error('Error loading my streamers:', e);
+                container.innerHTML = '<div class="text-center text-red-500 py-4 text-xs">Error al cargar</div>';
+            }
+        }
+
+        // ==========================================
+        // LIVE STREAMERS (otros populares)
+        // ==========================================
+        async function loadLiveStreamers() {
+            const container = document.getElementById('liveStreamersList');
+            container.innerHTML = '<div class="text-center text-zinc-500 py-4 text-xs">🔄 Buscando streamers en vivo...</div>';
+
+            try {
+                const res = await fetch('/api/live-streamers');
+                const data = await res.json();
+                liveStreamersData = data.live;
+
+                if (liveStreamersData.length === 0) {
+                    container.innerHTML = '<div class="text-center text-zinc-600 py-4 text-xs">No hay streamers en vivo ahora</div>';
+                    return;
+                }
+
+                container.innerHTML = liveStreamersData.map(s => `
+                    <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800/50 cursor-pointer transition-all group ${selectedStreamers.has(s.slug) ? 'bg-emerald-500/10 border border-emerald-500/30' : ''}"
+                         onclick="toggleLiveStreamer('${s.slug}')" data-channel="${s.slug}">
+                        <div class="relative flex-shrink-0">
+                            <div class="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden">
+                                ${s.thumbnail ? `<img src="${s.thumbnail}" class="w-full h-full object-cover" onerror="this.style.display='none'">` : ''}
+                            </div>
+                            <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-medium text-white truncate">${s.username}</span>
+                                ${selectedStreamers.has(s.slug) ? '<span class="text-emerald-500 text-xs">✓</span>' : ''}
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-zinc-500">
+                                <span class="text-red-400 font-medium">${formatViewers(s.viewers)}</span>
+                                <span class="truncate">${s.category || 'Sin categoría'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch(e) {
+                console.error('Error loading live streamers:', e);
+                container.innerHTML = '<div class="text-center text-red-500 py-4 text-xs">Error al cargar</div>';
+            }
+        }
+
+        function formatViewers(num) {
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function toggleLiveStreamer(channel) {
+            if (selectedStreamers.has(channel)) {
+                selectedStreamers.delete(channel);
+            } else {
+                selectedStreamers.add(channel);
+            }
+
+            // Actualizar visual del streamer en la lista
+            const item = document.querySelector(`#liveStreamersList [data-channel="${channel}"]`);
+            if (item) {
+                if (selectedStreamers.has(channel)) {
+                    item.classList.add('bg-emerald-500/10', 'border', 'border-emerald-500/30');
+                } else {
+                    item.classList.remove('bg-emerald-500/10', 'border', 'border-emerald-500/30');
+                }
+            }
+
+            updateSelectedDisplay();
+            saveSelectedToServer();
+        }
+
+        function updateSelectedDisplay() {
+            const container = document.getElementById('selectedStreamers');
+            const count = document.getElementById('selectedCount');
+
+            count.textContent = selectedStreamers.size;
+
+            if (selectedStreamers.size === 0) {
+                container.innerHTML = '<span class="text-zinc-600 text-xs">Ninguno seleccionado</span>';
+                return;
+            }
+
+            container.innerHTML = Array.from(selectedStreamers).map(ch => `
+                <span class="px-2 py-0.5 text-xs bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30 cursor-pointer hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30" onclick="toggleLiveStreamer('${ch}')" title="Click para quitar">${ch}</span>
+            `).join('');
+        }
+
+        async function saveSelectedToServer() {
+            const channels = Array.from(selectedStreamers);
+            try {
+                await fetch('/api/channels', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(channels)
+                });
+                addLog(`Canales actualizados: ${channels.length}`);
+            } catch(e) {
+                console.error('Error saving channels:', e);
+            }
+        }
+
+        async function loadSelectedFromServer() {
+            try {
+                const res = await fetch('/api/config');
+                const data = await res.json();
+
+                // Clear current selection
+                selectedStreamers.clear();
+
+                // Apply saved selection
+                data.channels.forEach(ch => {
+                    selectedStreamers.add(ch);
+                });
+
+                updateSelectedDisplay();
+            } catch(e) {
+                console.error('Error loading channels:', e);
+            }
+        }
+
+        function initChart() {
+            // Ya no usamos Chart.js, las barras se renderizan con HTML
+            console.log('Chart init (usando barras HTML)');
+        }
+
+        function updateChartData(velocities) {
+            // velocities es {channel: value}
+            const container = document.getElementById('channelBars');
+
+            if (!velocities || Object.keys(velocities).length === 0) {
+                container.innerHTML = '<div class="text-center text-zinc-600 py-8 text-sm">Inicia el monitoreo para ver actividad</div>';
+                document.getElementById('totalVelocity').textContent = '0 msg/s total';
+                return;
+            }
+
+            // Calcular total y máximo
+            const entries = Object.entries(velocities);
+            const total = entries.reduce((sum, [_, v]) => sum + v, 0);
+            const max = Math.max(...entries.map(([_, v]) => v), 1);
+
+            document.getElementById('totalVelocity').textContent = `${total.toFixed(1)} msg/s total`;
+
+            // Ordenar por velocidad descendente
+            entries.sort((a, b) => b[1] - a[1]);
+
+            // Generar barras
+            container.innerHTML = entries.map(([channel, velocity]) => {
+                const percent = (velocity / max) * 100;
+                const isHot = velocity > 5;
+                const isSpike = velocity > 10;
+
+                return `
+                    <div class="group">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-medium ${isSpike ? 'text-red-400' : isHot ? 'text-yellow-400' : 'text-zinc-300'}">${channel}</span>
+                            <span class="text-xs ${isSpike ? 'text-red-400 font-bold' : 'text-zinc-500'}">${velocity.toFixed(1)} msg/s</span>
+                        </div>
+                        <div class="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-300 ${isSpike ? 'bg-gradient-to-r from-red-500 to-orange-500 animate-pulse' : isHot ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-emerald-500 to-teal-500'}"
+                                 style="width: ${Math.max(percent, 2)}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateMonitoringList(channels) {
+            const container = document.getElementById('monitoringList');
+            const count = document.getElementById('monitoringCount');
+
+            if (!channels || channels.length === 0) {
+                container.innerHTML = '<span class="text-zinc-600 text-sm">Ningún canal seleccionado</span>';
+                count.textContent = '0';
+                return;
+            }
+
+            count.textContent = channels.length;
+            container.innerHTML = channels.map(ch => `
+                <span class="px-2 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded text-emerald-400 text-xs font-medium">${ch}</span>
+            `).join('');
+        }
+
+        function connectWS() {
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+            ws.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                handleMessage(msg);
+            };
+
+            ws.onclose = () => setTimeout(connectWS, 2000);
+        }
+
+        function handleMessage(msg) {
+            if(msg.type === 'init') {
+                updateStats(msg.data.stats);
+                setRunning(msg.data.is_running);
+                msg.data.events.forEach(addEvent);
+                if (msg.data.channels) {
+                    updateMonitoringList(msg.data.channels);
+                }
+            } else if(msg.type === 'stats') {
+                updateStats(msg.data);
+                if (msg.data.velocities) {
+                    updateChartData(msg.data.velocities);
+                }
+                if (msg.data.monitored_channels) {
+                    updateMonitoringList(msg.data.monitored_channels);
+                }
+            } else if(msg.type === 'event') {
+                addEvent(msg.data);
+            } else if(msg.type === 'log') {
+                addLog(msg.data);
+            } else if(msg.type === 'stream_summary') {
+                updateStreamSummary(msg.data);
+            } else if(msg.type === 'clip_analyzed') {
+                addAIAnalysis(msg.data);
+            } else if(msg.type === 'status') {
+                setRunning(msg.data.is_running);
+            } else if(msg.type === 'clip_ready') {
+                fetchClips(); // Refresh list
+                addLog(`Clip ready: ${msg.data.channel}`);
+            }
+        }
+
+        // ==========================================
+        // UI UPDATES
+        // ==========================================
+        function updateStats(stats) {
+            if(stats.messages) document.getElementById('statMessages').textContent = formatNumber(stats.messages);
+            if(stats.spikes) document.getElementById('statSpikes').textContent = stats.spikes;
+            if(stats.clips_ready) document.getElementById('statClips').textContent = stats.clips_ready;
+        }
+
+        function addEvent(event) {
+            const container = document.getElementById('eventsList');
+
+            // Clear "Waiting for events..." message on first event
+            if (container.children.length === 1 && container.firstElementChild.classList.contains('text-center')) {
+                container.innerHTML = '';
+            }
+
+            const time = new Date(event.timestamp).toLocaleTimeString();
+
+            const html = `
+                <div class="bg-zinc-900/50 border border-zinc-800 p-3 rounded-lg animate-fade-in">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-emerald-400 font-bold text-sm uppercase tracking-wider">SPIKE DETECTED</span>
+                        <span class="text-zinc-500 text-xs">${time}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-white font-medium">${event.channel}</span>
+                        <span class="text-zinc-400 text-sm">${event.velocity?.toFixed(0)} msg/s</span>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('afterbegin', html);
+            if(container.children.length > 50) container.lastChild.remove();
+        }
+
+        function addLog(message) {
+            const container = document.getElementById('logsConsole');
+            const div = document.createElement('div');
+            div.textContent = `> ${message}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+
+            if(container.children.length > 100) container.firstChild.remove();
+        }
+
+        // ==========================================
+        // AI STREAM SUMMARIES
+        // ==========================================
+        let streamSummaries = {};
+
+        async function loadAISummaries() {
+            try {
+                const res = await fetch('/api/ai/summaries');
+                const data = await res.json();
+                renderAISummaries(data.summaries);
+            } catch(e) {
+                console.error('Error loading AI summaries:', e);
+            }
+        }
+
+        function renderAISummaries(summaries) {
+            const container = document.getElementById('aiSummariesList');
+
+            if (!summaries || summaries.length === 0) {
+                container.innerHTML = '<div class="text-center text-zinc-600 py-4 text-sm">Sin datos de análisis AI</div>';
+                return;
+            }
+
+            container.innerHTML = summaries.map(s => {
+                const moodColor = s.mood?.includes('🔥') ? 'text-red-400' :
+                                  s.mood?.includes('⚡') ? 'text-yellow-400' :
+                                  s.mood?.includes('😴') ? 'text-zinc-500' : 'text-zinc-400';
+
+                const viralRate = s.clips_analyzed > 0 ? ((s.clips_viral / s.clips_analyzed) * 100).toFixed(0) : 0;
+                const velocityColor = s.velocity >= 30 ? 'text-red-400' : s.velocity >= 10 ? 'text-yellow-400' : 'text-zinc-400';
+
+                return `
+                    <div class="bg-zinc-900/60 border border-zinc-800 rounded-lg p-3">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-white">${s.channel}</span>
+                                <span class="${moodColor} text-sm">${s.mood || '📺'}</span>
+                                ${s.is_live ? '<span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded">LIVE</span>' : ''}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="${velocityColor} text-xs font-mono">${s.velocity || 0} msg/s</span>
+                                ${s.clips_analyzed > 0 ? `
+                                    <span class="text-xs px-2 py-0.5 rounded ${s.avg_score >= 0.6 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-700 text-zinc-400'}">
+                                        ${(s.avg_score || 0).toFixed(2)}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="text-xs text-zinc-400 mb-2">
+                            ${s.ai_summary || 'Sin resumen disponible'}
+                        </div>
+                        ${s.clips_analyzed > 0 ? `
+                            <div class="flex gap-3 text-xs text-zinc-500">
+                                <span>📊 ${s.clips_analyzed} analizados</span>
+                                <span class="text-emerald-400">✅ ${s.clips_viral} virales</span>
+                                <span class="text-red-400">❌ ${s.clips_filtered} filtrados</span>
+                                <span class="text-zinc-400">${viralRate}% viral</span>
+                            </div>
+                        ` : ''}
+                        ${s.highlights && s.highlights.length > 0 ? `
+                            <div class="mt-2 pt-2 border-t border-zinc-800">
+                                <div class="text-xs text-zinc-500 mb-1">Últimos highlights:</div>
+                                <div class="space-y-1">
+                                    ${s.highlights.slice(-3).map(h => `
+                                        <div class="text-xs text-emerald-400 truncate">• ${h.title || 'Sin título'} (${(h.score || 0).toFixed(2)})</div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStreamSummary(summary) {
+            streamSummaries[summary.channel] = summary;
+            renderAISummaries(Object.values(streamSummaries));
+        }
+
+        function addAIAnalysis(data) {
+            // Add a quick notification to the events feed
+            const container = document.getElementById('eventsList');
+            const time = new Date(data.timestamp).toLocaleTimeString();
+            const scoreColor = data.ai_score >= 0.8 ? 'text-emerald-400' : data.ai_score >= 0.6 ? 'text-yellow-400' : 'text-red-400';
+
+            const html = `
+                <div class="bg-purple-900/30 border border-purple-800/50 p-3 rounded-lg animate-fade-in">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-purple-400 font-bold text-xs uppercase tracking-wider">🤖 AI ANALYSIS</span>
+                        <span class="text-zinc-500 text-xs">${time}</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-white font-medium">${data.channel}</span>
+                        <span class="${scoreColor} text-sm font-bold">${(data.ai_score || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="text-xs text-zinc-400 truncate">${data.ai_title || 'Sin título'}</div>
+                    ${data.is_viral ? '<span class="text-xs text-emerald-400">✓ VIRAL - Procesando...</span>' : '<span class="text-xs text-red-400">✗ Descartado</span>'}
+                </div>
+            `;
+
+            container.insertAdjacentHTML('afterbegin', html);
+            if(container.children.length > 50) container.lastChild.remove();
+        }
+
+        function setRunning(isRunning) {
+            const badge = document.getElementById('statusBadge');
+            const dot = badge.querySelector('.status-dot');
+            const text = badge.querySelector('span');
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+
+            if(isRunning) {
+                dot.className = 'w-2 h-2 rounded-full bg-emerald-500 status-dot animate-pulse';
+                text.textContent = 'System Online';
+                text.className = 'text-emerald-400 font-medium';
+                badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm';
+                startBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+            } else {
+                dot.className = 'w-2 h-2 rounded-full bg-zinc-500 status-dot';
+                text.textContent = 'System Offline';
+                text.className = 'text-zinc-400 font-medium';
+                badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-800 border border-zinc-700 text-sm';
+                startBtn.classList.remove('hidden');
+                stopBtn.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // API CALLS
+        // ==========================================
+        async function startMonitor() {
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Starting...';
+            
+            try {
+                await fetch('/api/start', { method: 'POST' });
+            } catch(e) {
+                console.error(e);
+            }
+            btn.disabled = false;
+            btn.innerHTML = 'Start Monitoring';
+        }
+
+        async function stopMonitor() {
+            await fetch('/api/stop', { method: 'POST' });
+        }
+
+        async function manualCapture() {
+            const channel = document.getElementById('captureChannel').value.trim();
+            const duration = document.getElementById('captureDuration').value;
+            const btn = document.getElementById('captureBtn');
+
+            if (!channel) {
+                alert('Ingresa el nombre del canal');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<svg class="animate-spin h-4 w-4 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Capturando...';
+
+            try {
+                const res = await fetch(`/api/capture/${channel}?duration=${duration}`, { method: 'POST' });
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    addLog(`Clip capturado: ${data.file} (${data.size_mb?.toFixed(1)} MB)`);
+                    fetchClips();
+                } else {
+                    addLog(`Error: ${data.message}`);
+                }
+            } catch(e) {
+                addLog(`Error de captura: ${e.message}`);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = 'Capturar Clip';
+        }
+
+        async function fetchStatus() {
+            const res = await fetch('/api/status');
+            const data = await res.json();
+            updateChannelsList(data.channels);
+        }
+
+        function updateChannelsList(channels) {
+            const container = document.getElementById('channelsList');
+            document.getElementById('channelCount').textContent = channels.length;
+            
+            container.innerHTML = channels.map(ch => `
+                <div class="flex items-center justify-between p-2 hover:bg-white/5 rounded-lg transition-colors group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full ${ch.is_live ? 'bg-red-500' : 'bg-zinc-600'}"></div>
+                        <span class="text-sm font-medium ${ch.is_live ? 'text-white' : 'text-zinc-500'}">${ch.slug}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-zinc-500 font-mono">${ch.velocity?.toFixed(0)}/s</span>
+                        ${ch.is_live ? `<span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded">LIVE</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function fetchClips() {
+            const res = await fetch('/api/clips');
+            const data = await res.json();
+            const container = document.getElementById('clipsList');
+            
+            container.innerHTML = data.clips.map(clip => `
+                <div class="bg-zinc-900/50 border border-zinc-800 p-3 rounded-lg group hover:border-zinc-700 transition-colors">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="text-sm font-medium text-white">${clip.channel}</div>
+                            <div class="text-xs text-zinc-500">${new Date(clip.timestamp).toLocaleTimeString()}</div>
+                        </div>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${getStatusColor(clip.status)}">${clip.status}</span>
+                    </div>
+                    ${clip.status === 'ready' ? `
+                        <div class="flex gap-2 mt-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                            <button onclick="publishClip('${clip.id}', 'tiktok')" class="flex-1 bg-black border border-zinc-700 hover:border-zinc-500 text-white text-xs py-1.5 rounded transition-colors">
+                                Upload TikTok
+                            </button>
+                        </div>
+                    ` : ''}
+                    ${clip.published_urls?.tiktok ? `
+                        <a href="${clip.published_urls.tiktok}" target="_blank" class="block mt-2 text-center text-xs text-emerald-500 hover:underline">View on TikTok</a>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function getStatusColor(status) {
+            const map = {
+                'ready': 'bg-emerald-500/20 text-emerald-400',
+                'downloading': 'bg-yellow-500/20 text-yellow-400',
+                'reframing': 'bg-blue-500/20 text-blue-400',
+                'captioning': 'bg-cyan-500/20 text-cyan-400',
+                'published': 'bg-purple-500/20 text-purple-400',
+                'failed': 'bg-red-500/20 text-red-400'
+            };
+            return map[status] || 'bg-zinc-800 text-zinc-400';
+        }
+
+        async function publishClip(id, platform) {
+            const btn = event.target;
+            const original = btn.textContent;
+            btn.textContent = 'Uploading...';
+            btn.disabled = true;
+            
+            try {
+                await fetch(`/api/publish/${id}/${platform}`, { method: 'POST' });
+                fetchClips();
+            } catch(e) {
+                alert('Upload failed');
+            }
+        }
+
+        // ==========================================
+        // SETTINGS
+        // ==========================================
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+            if(!modal.classList.contains('hidden')) {
+                loadConfig();
+            }
+        }
+
+        async function loadConfig() {
+            const res = await fetch('/api/config');
+            const data = await res.json();
+            const container = document.getElementById('configChannelsList');
+            
+            container.innerHTML = data.channels.map(ch => `
+                <div class="flex items-center gap-2 bg-black/40 px-2 py-1 rounded border border-white/10">
+                    <span class="text-xs text-zinc-300">${ch}</span>
+                    <button onclick="removeChannel('${ch}')" class="text-zinc-500 hover:text-red-400">×</button>
+                </div>
+            `).join('');
+        }
+
+        async function addChannel() {
+            const input = document.getElementById('newChannelInput');
+            const channel = input.value.trim().toLowerCase();
+            if(!channel) return;
+
+            // Agregar a selectedStreamers
+            selectedStreamers.add(channel);
+
+            // Guardar en servidor
+            await saveSelectedToServer();
+
+            // Actualizar UIs
+            input.value = '';
+            loadConfig();
+            updateSelectedDisplay();
+
+            // Refrescar listas para marcar como seleccionado
+            loadMyStreamers();
+            loadLiveStreamers();
+        }
+
+        async function removeChannel(channel) {
+            // Quitar de selectedStreamers
+            selectedStreamers.delete(channel);
+
+            // Guardar en servidor
+            await saveSelectedToServer();
+
+            // Actualizar UIs
+            loadConfig();
+            updateSelectedDisplay();
+
+            // Refrescar listas
+            loadMyStreamers();
+            loadLiveStreamers();
+        }
+
+        // ==========================================
+        // UTILS
+        // ==========================================
+        function formatNumber(num) {
+            if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
+            if(num >= 1000) return (num/1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        // Init
+        initChart();
+        connectWS();
+        fetchStatus();
+        loadSelectedFromServer();
+        loadMyStreamers();    // Cargar mis streamers favoritos
+        loadLiveStreamers();  // Cargar otros en vivo
+        loadAISummaries();    // Cargar resúmenes AI iniciales
+        fetchClips();
+        setInterval(fetchStatus, 2000);
+        setInterval(loadAISummaries, 5000);  // Actualizar AI summaries cada 5 segundos
+
+    </script>
+</body>
+</html>
