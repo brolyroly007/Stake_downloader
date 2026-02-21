@@ -1,6 +1,35 @@
 # Stake Downloader - Viral Content Automation
 
+[![CI](https://github.com/brolyroly007/Stake_downloader/actions/workflows/ci.yml/badge.svg)](https://github.com/brolyroly007/Stake_downloader/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 Automated system for detecting, capturing, and processing viral moments from live streams on **Kick.com** and **Stake.com** gambling platforms. Captures clips in real-time, processes them for social media (vertical reframe, auto-captions), and publishes to TikTok, YouTube Shorts, and Instagram Reels.
+
+---
+
+## Screenshots
+
+<details>
+<summary>Click to expand screenshots</summary>
+
+### Web Dashboard
+> The dashboard provides real-time monitoring with WebSocket updates, chat velocity graphs, and a clip library.
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Event Feed
+> Live event feed showing detected spikes and viral moments across all monitored channels.
+
+![Events](docs/screenshots/events.png)
+
+### Clip Library
+> Browse, play, and publish captured clips directly from the web interface.
+
+![Clips](docs/screenshots/clips.png)
+
+</details>
 
 ---
 

@@ -91,7 +91,7 @@ async def broadcast(data: dict):
     for client in connected_clients:
         try:
             await client.send_text(message)
-        except:
+        except Exception:
             disconnected.add(client)
     connected_clients.difference_update(disconnected)
 

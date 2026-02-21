@@ -16,6 +16,7 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
 import json
 
+from core.logger import logger
 from monitors.base_monitor import MonitorEvent, EventType
 from recorders.clip_downloader import ClipDownloader, DownloadOptions
 import config
@@ -31,10 +32,10 @@ except ImportError:
 try:
     from recorders.retroactive_clipper import SmartClipper, RetroClipConfig
     HAS_SMART_CLIPPER = True
-    print("[Pipeline Import] SmartClipper cargado correctamente")
+    logger.info("SmartClipper loaded successfully")
 except ImportError as e:
     HAS_SMART_CLIPPER = False
-    print(f"[Pipeline Import] SmartClipper no disponible: {e}")
+    logger.debug(f"SmartClipper not available: {e}")
 
 # Importar analizador de Gemini
 try:
@@ -139,9 +140,9 @@ class ViralPipeline:
         self.smart_clipper: Optional[SmartClipper] = None
         if HAS_SMART_CLIPPER:
             self.smart_clipper = SmartClipper(output_dir=self.output_dir / "raw")
-            print("[Pipeline] SmartClipper: OK (divide y vencerás)")
+            logger.info("SmartClipper: OK (divide y vencerás)")
         else:
-            print("[Pipeline] SmartClipper: NO DISPONIBLE")
+            logger.warning("SmartClipper: NO DISPONIBLE")
 
         # Stream Buffer (legacy - para capturar ANTES del spike)
         self.multi_buffer: Optional[MultiStreamBuffer] = None
@@ -153,9 +154,9 @@ class ViralPipeline:
                 post_event_seconds=getattr(config, 'POST_SPIKE_SECONDS', 20),
             )
             self.multi_buffer = MultiStreamBuffer(output_dir=self.output_dir / "raw")
-            print("[Pipeline] StreamBuffer: OK (legacy)")
+            logger.info("StreamBuffer: OK (legacy)")
         elif not HAS_SMART_CLIPPER:
-            print("[Pipeline] StreamBuffer: NO DISPONIBLE")
+            logger.warning("StreamBuffer: NO DISPONIBLE")
 
         # Gemini AI Analyzer
         self.gemini_analyzer: Optional[GeminiAnalyzer] = None
@@ -163,11 +164,11 @@ class ViralPipeline:
             api_key = getattr(config, 'GEMINI_API_KEY', None)
             if api_key:
                 self.gemini_analyzer = GeminiAnalyzer(api_key=api_key)
-                print("[Pipeline] GeminiAnalyzer: OK")
+                logger.info("GeminiAnalyzer: OK")
             else:
-                print("[Pipeline] GeminiAnalyzer: NO API KEY")
+                logger.warning("GeminiAnalyzer: NO API KEY")
         else:
-            print("[Pipeline] GeminiAnalyzer: DESHABILITADO")
+            logger.info("GeminiAnalyzer: DESHABILITADO")
 
         # Video Reframer (16:9 → 1:1 cuadrado)
         self.reframer = None
@@ -180,9 +181,9 @@ class ViralPipeline:
                     mode=ReframeMode.CENTER,  # Usar CENTER por defecto (más rápido)
                 )
             )
-            print("[Pipeline] VideoReframer: OK (1:1 cuadrado)")
+            logger.info("VideoReframer: OK (1:1 cuadrado)")
         else:
-            print("[Pipeline] VideoReframer: NO DISPONIBLE")
+            logger.warning("VideoReframer: NO DISPONIBLE")
 
         # Caption Generator (subtítulos)
         self.captioner = None
@@ -195,9 +196,9 @@ class ViralPipeline:
                     word_by_word=True,
                 )
             )
-            print("[Pipeline] CaptionGenerator: OK")
+            logger.info("CaptionGenerator: OK")
         else:
-            print("[Pipeline] CaptionGenerator: NO DISPONIBLE (instalar whisper)")
+            logger.warning("CaptionGenerator: NO DISPONIBLE (instalar whisper)")
 
         # Control de concurrencia
         self.max_concurrent_downloads = 3
@@ -290,23 +291,23 @@ class ViralPipeline:
         try:
             # ========== PASO 1: DESCARGAR ==========
             moment.status = "downloading"
-            print(f"[Pipeline] {moment.id}: Descargando clip...")
+            logger.info(f"{moment.id}: Descargando clip...")
 
             clip = await self._download_clip(moment)
 
             if not clip:
                 moment.status = "failed"
                 moment.error = "Download failed"
-                print(f"[Pipeline] {moment.id}: Error en descarga")
+                logger.error(f"{moment.id}: Error en descarga")
                 return
 
             moment.clip_path = clip
-            print(f"[Pipeline] {moment.id}: Descarga OK ({clip.stat().st_size / 1024 / 1024:.1f} MB)")
+            logger.info(f"{moment.id}: Descarga OK ({clip.stat().st_size / 1024 / 1024:.1f} MB)")
 
             # ========== PASO 1.5: ANÁLISIS AI ==========
             if self.gemini_analyzer:
                 moment.status = "analyzing"
-                print(f"[Pipeline] {moment.id}: Analizando con Gemini AI...")
+                logger.info(f"{moment.id}: Analizando con Gemini AI...")
 
                 ai_result = await self._analyze_with_ai(moment)
 
@@ -316,8 +317,8 @@ class ViralPipeline:
                     moment.ai_title = ai_result.suggested_title
                     moment.ai_tags = ai_result.suggested_tags
 
-                    print(f"[Pipeline] {moment.id}: AI Score={ai_result.virality_score:.2f}, Viral={ai_result.is_viral}")
-                    print(f"[Pipeline] {moment.id}: Título sugerido: {ai_result.suggested_title}")
+                    logger.info(f"{moment.id}: AI Score={ai_result.virality_score:.2f}, Viral={ai_result.is_viral}")
+                    logger.info(f"{moment.id}: Título sugerido: {ai_result.suggested_title}")
 
                     # Notificar callbacks de análisis
                     for callback in self._on_moment_analyzed:
@@ -327,12 +328,12 @@ class ViralPipeline:
                             else:
                                 callback(moment)
                         except Exception as e:
-                            print(f"[Pipeline] Analyzed callback error: {e}")
+                            logger.error(f"Analyzed callback error: {e}")
 
                     # Filtrar si el score es muy bajo
                     min_score = getattr(config, 'AI_MIN_VIRALITY_SCORE', 0.6)
                     if ai_result.virality_score < min_score and not moment.data.get('manual_capture'):
-                        print(f"[Pipeline] {moment.id}: Descartado por AI (score {ai_result.virality_score:.2f} < {min_score})")
+                        logger.warning(f"{moment.id}: Descartado por AI (score {ai_result.virality_score:.2f} < {min_score})")
                         moment.status = "filtered"
                         moment.error = f"AI score too low: {ai_result.virality_score:.2f}"
 
@@ -340,38 +341,38 @@ class ViralPipeline:
                         if moment.clip_path and moment.clip_path.exists():
                             try:
                                 moment.clip_path.unlink()
-                                print(f"[Pipeline] {moment.id}: Clip eliminado (liberando espacio)")
+                                logger.info(f"{moment.id}: Clip eliminado (liberando espacio)")
                             except Exception as e:
-                                print(f"[Pipeline] {moment.id}: Error eliminando clip: {e}")
+                                logger.error(f"{moment.id}: Error eliminando clip: {e}")
 
                         return
 
             # ========== PASO 2: REFRAME CUADRADO 1:1 ==========
             if self.auto_process and self.reframer:
                 moment.status = "reframing"
-                print(f"[Pipeline] {moment.id}: Convirtiendo a cuadrado 1:1...")
+                logger.info(f"{moment.id}: Convirtiendo a cuadrado 1:1...")
 
                 square = await self._reframe_video(moment)
 
                 if square:
                     moment.vertical_path = square  # Reutilizamos el campo
-                    print(f"[Pipeline] {moment.id}: Reframe OK (1080x1080)")
+                    logger.info(f"{moment.id}: Reframe OK (1080x1080)")
                 else:
-                    print(f"[Pipeline] {moment.id}: Reframe falló, usando original")
+                    logger.warning(f"{moment.id}: Reframe falló, usando original")
                     moment.vertical_path = moment.clip_path
 
             # ========== PASO 3: SUBTÍTULOS ==========
             if self.auto_process and self.captioner:
                 moment.status = "captioning"
-                print(f"[Pipeline] {moment.id}: Generando subtítulos...")
+                logger.info(f"{moment.id}: Generando subtítulos...")
 
                 captioned = await self._add_captions(moment)
 
                 if captioned:
                     moment.captioned_path = captioned
-                    print(f"[Pipeline] {moment.id}: Subtítulos OK")
+                    logger.info(f"{moment.id}: Subtítulos OK")
                 else:
-                    print(f"[Pipeline] {moment.id}: Subtítulos fallaron")
+                    logger.warning(f"{moment.id}: Subtítulos fallaron")
 
             # ========== DETERMINAR VIDEO FINAL ==========
             # Usar el video más procesado disponible
@@ -382,7 +383,7 @@ class ViralPipeline:
             )
 
             moment.status = "ready"
-            print(f"[Pipeline] {moment.id}: LISTO - {moment.processed_path}")
+            logger.info(f"{moment.id}: LISTO - {moment.processed_path}")
 
             # Notificar callbacks
             for callback in self._on_moment_ready:
@@ -392,12 +393,12 @@ class ViralPipeline:
                     else:
                         callback(moment)
                 except Exception as e:
-                    print(f"[Pipeline] Callback error: {e}")
+                    logger.error(f"Callback error: {e}")
 
         except Exception as e:
             moment.status = "failed"
             moment.error = str(e)
-            print(f"[Pipeline] {moment.id}: Error - {e}")
+            logger.error(f"{moment.id}: Error - {e}")
 
     async def _download_clip(self, moment: ViralMoment) -> Optional[Path]:
         """Descarga el clip de un momento viral."""
@@ -410,7 +411,7 @@ class ViralPipeline:
                 velocity = moment.data.get("velocity", 0)
                 viewers = moment.data.get("viewers", 0)
 
-                print(f"[Pipeline] {moment.id}: Usando SmartClipper (5s antes + 25s después)")
+                logger.info(f"{moment.id}: Usando SmartClipper (5s antes + 25s después)")
                 clip_path = await self.smart_clipper.capture_spike(
                     channel=moment.channel,
                     velocity=velocity,
@@ -421,7 +422,7 @@ class ViralPipeline:
                     return clip_path
 
                 # Fallback a método tradicional
-                print(f"[Pipeline] {moment.id}: SmartClipper falló, usando método tradicional")
+                logger.warning(f"{moment.id}: SmartClipper falló, usando método tradicional")
                 return await self._download_live_stream(moment)
 
             # Para streams en vivo sin SmartClipper
@@ -438,7 +439,7 @@ class ViralPipeline:
                 return clip.file_path
 
         except Exception as e:
-            print(f"[Pipeline] Download error: {e}")
+            logger.error(f"Download error: {e}")
 
         return None
 
@@ -486,7 +487,7 @@ class ViralPipeline:
                 return output_path
 
         except Exception as e:
-            print(f"[Pipeline] Download stream error: {e}")
+            logger.error(f"Download stream error: {e}")
 
         return None
 
@@ -505,7 +506,7 @@ class ViralPipeline:
                 return result.output_path
 
         except Exception as e:
-            print(f"[Pipeline] Reframe error: {e}")
+            logger.error(f"Reframe error: {e}")
 
         return None
 
@@ -542,7 +543,7 @@ class ViralPipeline:
                 return output_path
 
         except Exception as e:
-            print(f"[Pipeline] Caption error: {e}")
+            logger.error(f"Caption error: {e}")
 
         return None
 
@@ -556,7 +557,7 @@ class ViralPipeline:
             transcript = await self._transcribe_clip(moment.clip_path)
 
             if not transcript:
-                print(f"[Pipeline] {moment.id}: No se pudo transcribir, usando contexto")
+                logger.warning(f"{moment.id}: No se pudo transcribir, usando contexto")
                 # Usar solo el contexto del evento
                 transcript = f"[Spike de chat detectado en {moment.channel}]"
 
@@ -577,7 +578,7 @@ class ViralPipeline:
             return analysis
 
         except Exception as e:
-            print(f"[Pipeline] AI analysis error: {e}")
+            logger.error(f"AI analysis error: {e}")
             return None
 
     async def _transcribe_clip(self, video_path: Path) -> Optional[str]:
@@ -601,11 +602,11 @@ class ViralPipeline:
 
             transcript = result.get("text", "").strip()
             if transcript:
-                print(f"[Pipeline] Transcripción: {transcript[:100]}...")
+                logger.info(f"Transcripción: {transcript[:100]}...")
             return transcript
 
         except Exception as e:
-            print(f"[Pipeline] Transcription error: {e}")
+            logger.error(f"Transcription error: {e}")
             return None
 
     async def start_buffer_for_channel(self, channel: str, platform: str = "kick"):
@@ -695,7 +696,7 @@ async def on_viral_event(event: MonitorEvent):
     """Handler global para eventos virales."""
     moment = await pipeline.handle_event(event)
     if moment:
-        print(f"[Pipeline] Momento viral detectado: {moment.id}")
+        logger.info(f"Momento viral detectado: {moment.id}")
 
 
 # Conectar a los handlers existentes
